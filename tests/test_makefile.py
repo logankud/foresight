@@ -95,18 +95,18 @@ def test_stub_targets_exit_zero_with_pointer() -> None:
     for target in STUB_TARGETS:
         result = _run_make(target)
         assert result.returncode == 0, f"`make {target}` must exit 0, got {result.returncode}."
-        assert (
-            "stub" in result.stdout.lower()
-        ), f"`make {target}` must announce itself as a stub, got: {result.stdout!r}"
-        assert (
-            "PLAN.md" in result.stdout
-        ), f"`make {target}` must point at PLAN.md so contributors find context."
+        assert "stub" in result.stdout.lower(), (
+            f"`make {target}` must announce itself as a stub, got: {result.stdout!r}"
+        )
+        assert "PLAN.md" in result.stdout, (
+            f"`make {target}` must point at PLAN.md so contributors find context."
+        )
 
 
 def test_lint_exits_zero_on_clean_tree() -> None:
     """`make lint` must pass on the tree as committed — i.e., the lint
     contract is reachable from a fresh clone without manual fixes."""
     result = _run_make("lint", check=False)
-    assert (
-        result.returncode == 0
-    ), f"`make lint` failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
+    assert result.returncode == 0, (
+        f"`make lint` failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
+    )

@@ -4,9 +4,9 @@
 
 #### Blind, uninformed forecasts leading to over- or under-estimating operational demand? You need Foresight!
 
-## About 
+## About
 
-#### Foresight is a first-of-its-kind platform for DTC / e-com brands to streamline and optimize their operations. 
+#### Foresight is a first-of-its-kind platform for DTC / e-com brands to streamline and optimize their operations.
 
 ## Key Features
 
@@ -14,13 +14,13 @@ Data-first, AI native features:
 - Secure cataloging and storing of your operational data (at any scale)
 -- Order Data
 -- Inventory Data
--- 
-- Fleet of Agents to reason over organizational knoweldge and operational data to complete tasks on your behalf - extend your human team 
+--
+- Fleet of Agents to reason over organizational knoweldge and operational data to complete tasks on your behalf - extend your human team
 -- have converstations (integrate with chat / messaging tools ie. Slack)
 -- "living" knowledge base (wiki-style for humans & agents to interract with)
 -- define and schedule Skills and Tasks
-- Traditional ML for forecasting 
-- 
+- Traditional ML for forecasting
+-
 - (Future) "Ops Gym" - Reinforcement Learning environment generated from operational data for state-of-the-art forecasting
 
 
@@ -30,7 +30,7 @@ Foresight is in **early foundations** (Epic 1 — *Foundations & Tooling*). The 
 
 | Epic | Theme | Status |
 |---|---|---|
-| E1 | Foundations & Tooling | 🟡 In progress (S0/S1/S2 done, S3 in review, S4–S6 pending) |
+| E1 | Foundations & Tooling | 🟡 In progress (S0/S1/S2/S3 done, S4 in review, S5–S6 pending) |
 | E2 | Data Model & Storage | ⚪ Not started |
 | E3 | API Foundation (FastAPI) | ⚪ Not started |
 | E4 | Shopify Ingestion + Worker | ⚪ Not started |

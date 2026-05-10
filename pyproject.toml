@@ -28,8 +28,9 @@ test = [
 ]
 lint = [
     "ruff>=0.6",
-    "black>=24",
     "mypy>=1.10",
+    "pre-commit>=4",
+    "import-linter>=2.1",
 ]
 dev = [
     "ipython",
@@ -54,10 +55,6 @@ src = ["foresight", "tests"]
 # Conservative starter set; expanded in E1.S4 alongside pre-commit.
 select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = []
-
-[tool.black]
-line-length = 100
-target-version = ["py312"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -84,3 +81,34 @@ omit = ["*/__pycache__/*"]
 fail_under = 80
 show_missing = true
 skip_covered = false
+
+# ----- import-linter (layering rules) -----
+# Machine-enforces the subpackage layering rules documented in
+# `foresight/__init__.py`. Run via `uv run lint-imports`, in pre-commit,
+# and in CI.
+[tool.importlinter]
+root_packages = ["foresight"]
+
+[[tool.importlinter.contracts]]
+name = "foresight.core is the foundation"
+type = "forbidden"
+source_modules = ["foresight.core"]
+forbidden_modules = ["foresight.api", "foresight.worker", "foresight.agents"]
+
+[[tool.importlinter.contracts]]
+name = "foresight.api may not import foresight.worker"
+type = "forbidden"
+source_modules = ["foresight.api"]
+forbidden_modules = ["foresight.worker"]
+
+[[tool.importlinter.contracts]]
+name = "foresight.worker may not import foresight.api"
+type = "forbidden"
+source_modules = ["foresight.worker"]
+forbidden_modules = ["foresight.api"]
+
+[[tool.importlinter.contracts]]
+name = "foresight.agents may only import foresight.core"
+type = "forbidden"
+source_modules = ["foresight.agents"]
+forbidden_modules = ["foresight.api", "foresight.worker"]
