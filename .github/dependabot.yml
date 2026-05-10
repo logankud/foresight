@@ -1,0 +1,68 @@
+# Dependabot configuration for Foresight.
+# Two ecosystems are tracked: Python (uv-managed at the repo root) and npm
+# (pnpm-managed under web/). GitHub Actions is added so workflow versions
+# stay current once CI lands in E1.S5.
+#
+# All update PRs target `develop` (the integration branch) per CONTRIBUTING.md.
+# Reference: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+version: 2
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    target-branch: "develop"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "deps(python)"
+      include: "scope"
+
+  - package-ecosystem: "npm"
+    directory: "/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    target-branch: "develop"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "node"
+    commit-message:
+      prefix: "deps(web)"
+      include: "scope"
+    # Group minor + patch updates so the PR queue doesn't explode.
+    groups:
+      next-react:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+        update-types:
+          - "minor"
+          - "patch"
+      typescript-tooling:
+        patterns:
+          - "typescript"
+          - "@types/node"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    target-branch: "develop"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "deps(ci)"
+      include: "scope"

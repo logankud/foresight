@@ -1,0 +1,71 @@
+[project]
+name = "foresight"
+version = "0.1.0"
+description = "Data-first, AI-native operations platform for DTC / e-com brands."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary - All Rights Reserved" }
+authors = [{ name = "Logan Kudlacik" }]
+# No runtime dependencies yet. FastAPI / SQLAlchemy / etc. land in E2/E3.
+dependencies = []
+
+# This top-level project is currently a "tooling/meta" project.
+# Actual Python packages will live under `packages/*` and `services/*`
+# starting with E1.S2 (monorepo layout).
+[tool.uv]
+# Tell uv this project owns the workspace root but produces no wheel itself.
+package = false
+
+# PEP 735 dependency groups. Resolved by `uv sync --group <name>`.
+[dependency-groups]
+test = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "pytest-asyncio>=0.23",
+]
+lint = [
+    "ruff>=0.6",
+    "black>=24",
+    "mypy>=1.10",
+]
+dev = [
+    "ipython",
+    { include-group = "test" },
+    { include-group = "lint" },
+]
+
+# ----- Tool configuration -----
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# Conservative starter set; expanded in E1.S4 alongside pre-commit.
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = []
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+# Strict mode applies to packages in this monorepo only. E1.S2 will narrow
+# the `files` setting to `packages/core` and `services/api` once they exist.
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra"
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+branch = true
+source = ["tests"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = false
