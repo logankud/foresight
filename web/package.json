@@ -1,0 +1,35 @@
+{
+  "name": "foresight-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Foresight web app (Next.js).",
+  "license": "SEE LICENSE IN ../LICENSE",
+  "engines": {
+    "node": ">=22 <=24",
+    "pnpm": ">=11"
+  },
+  "packageManager": "pnpm@11.0.9",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.5.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp"
+    ]
+  }
+}

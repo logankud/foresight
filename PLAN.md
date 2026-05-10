@@ -41,8 +41,8 @@ Tracks completion state per story. Updated as part of each story's documentation
 
 | Story | Title | Status | PR | Merge SHA |
 |---|---|---|---|---|
-| E1.S0 | Git & branch bootstrap | ✅ Done | [#1](https://github.com/logankud/foresight/pull/1) | `476d119` |
-| E1.S1 | Initialize repo & dependency tooling | ⚪ Pending | — | — |
+| E1.S0 | Git & branch bootstrap | ✅ Done | [#1](https://github.com/logankud/foresight/pull/1), [#2](https://github.com/logankud/foresight/pull/2) | `476d119`, `a9828e9` |
+| E1.S1 | Initialize repo & dependency tooling | 🟡 In review | _(this PR)_ | — |
 | E1.S2 | Adopt monorepo layout | ⚪ Pending | — | — |
 | E1.S3 | Makefile / dev commands | ⚪ Pending | — | — |
 | E1.S4 | Pre-commit hooks | ⚪ Pending | — | — |

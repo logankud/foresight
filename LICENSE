@@ -1,9 +1,36 @@
+PROPRIETARY SOFTWARE LICENSE
+============================
+
 Copyright (c) 2026 Logan Kudlacik. All Rights Reserved.
 
-This is a placeholder license. The formal license for Foresight has not yet
-been selected and will be finalized as part of story E1.S1 (see PLAN.md).
-Until that selection lands, no rights are granted to use, copy, modify, merge,
-publish, distribute, sublicense, or sell copies of this software.
+This software and associated documentation files (the "Software") are the
+proprietary, confidential property of Logan Kudlacik (the "Owner"). All
+rights are reserved by the Owner.
 
-If you are interested in using or contributing to this project before the
-license is finalized, please contact the repository owner.
+NO RIGHTS GRANTED
+-----------------
+
+The Software is published in this public repository for visibility and
+collaboration with the Owner only. No license — express or implied — is
+granted to any third party to use, copy, modify, merge, publish,
+distribute, sublicense, sell, or otherwise exploit the Software, in
+whole or in part, by any means or in any form, without the prior
+written consent of the Owner.
+
+NO WARRANTY
+-----------
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY CLAIM,
+DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR
+OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR
+THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+CONTACT
+-------
+
+For licensing inquiries, contributions, or any other authorization
+requests, contact the Owner via the repository at
+https://github.com/logankud/foresight.
