@@ -1,9 +1,9 @@
 """Smoke tests for the project bootstrap configuration.
 
 These tests don't exercise application logic — they verify that the
-foundational pyproject.toml hasn't drifted away from agreed E1.S1
-decisions (Python floor, dependency groups, project name). Catching
-those regressions at PR time is far cheaper than diagnosing them
+foundational pyproject.toml hasn't drifted away from agreed E1.S1 / E1.S2
+decisions (project name, Python floor, dependency groups, license).
+Catching those regressions at PR time is far cheaper than diagnosing them
 weeks later.
 """
 

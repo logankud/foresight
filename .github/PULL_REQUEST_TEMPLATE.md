@@ -42,7 +42,7 @@ state "N/A" with an explicit exemption reason. The 80% gate from
 CLAUDE.md only applies to PRs containing testable code.
 -->
 
-**Coverage:** <!-- e.g. "84% on services/api/routers/forecasts.py" or "N/A — pure docs/infra story, see exemption below" -->
+**Coverage:** <!-- e.g. "84% on foresight/api/routers/forecasts.py" or "N/A — pure docs/infra story, see exemption below" -->
 
 **Exemption (if N/A):** <!-- delete if not applicable -->
 

@@ -42,8 +42,8 @@ Tracks completion state per story. Updated as part of each story's documentation
 | Story | Title | Status | PR | Merge SHA |
 |---|---|---|---|---|
 | E1.S0 | Git & branch bootstrap | ✅ Done | [#1](https://github.com/logankud/foresight/pull/1), [#2](https://github.com/logankud/foresight/pull/2) | `476d119`, `a9828e9` |
-| E1.S1 | Initialize repo & dependency tooling | 🟡 In review | _(this PR)_ | — |
-| E1.S2 | Adopt monorepo layout | ⚪ Pending | — | — |
+| E1.S1 | Initialize repo & dependency tooling | ✅ Done | [#3](https://github.com/logankud/foresight/pull/3) | `0c78cce` |
+| E1.S2 | Adopt monorepo layout | 🟡 In review | _(this PR)_ | — |
 | E1.S3 | Makefile / dev commands | ⚪ Pending | — | — |
 | E1.S4 | Pre-commit hooks | ⚪ Pending | — | — |
 | E1.S5 | CI skeleton (GitHub Actions) | ⚪ Pending | — | — |
@@ -100,10 +100,10 @@ Each story includes a user-story description, acceptance criteria with **what** 
 **E1.S2 — Adopt monorepo layout**
 - **User story:** As a developer, I want the agreed monorepo skeleton committed with placeholder modules, so future code lands in predictable places.
 - **Acceptance criteria:**
-  - Directory tree matches `services/{api,worker}`, `packages/{core,agents}`, `web/`, `infra/{compose,terraform}`, `scripts/`, `docs/`. — *Why:* A predictable layout removes the daily "where does this go?" cognitive tax and makes onboarding faster.
-  - Every Python package has `__init__.py` (or PEP 420 namespace); pytest discovers `packages/core` and `services/api`. — *Why:* Without proper package markers, imports look fine but break in CI; verifying discovery prevents a confusing class of test failures.
+  - Directory tree matches `foresight/{core,agents,api,worker}/`, `tests/`, `web/`, `infra/{compose,terraform}`, `scripts/`, `docs/`. — *Why:* A predictable layout removes the daily "where does this go?" cognitive tax and makes onboarding faster. (Originally planned as a uv workspace with `packages/{core,agents}` and `services/{api,worker}`; collapsed to a single `foresight` package with subpackages after user review for simpler mental model.)
+  - Every subpackage has `__init__.py`; pytest discovers all four subpackages. — *Why:* Without proper package markers, imports look fine but break in CI; verifying discovery prevents a confusing class of test failures.
   - tsconfig path aliases (`@/*` → `web/`) resolve in both editor and `next build`. — *Why:* Aliases keep import paths stable as files move; verifying both editor and build prevents drift between IDE and CI.
-  - Layering rule codified: `core` cannot import from `services/*`; `services/*` import from `packages/*` only. — *Why:* Layered dependencies keep the data layer reusable and testable in isolation; codifying the rule early avoids a costly untangle later.
+  - Layering rule codified: `foresight.core` cannot import from `foresight.api`, `foresight.worker`, or `foresight.agents`; `foresight.api` and `foresight.worker` cannot import from each other; `foresight.agents` may import from `foresight.core` only. — *Why:* Layered dependencies keep the data layer reusable and testable in isolation; codifying the rule early avoids a costly untangle later. Documented in `foresight/__init__.py` and `CONTRIBUTING.md`; will be machine-enforced via `import-linter` in E1.S4.
 - **Depends on:** E1.S1
 
 **E1.S3 — Makefile / dev commands**
@@ -121,7 +121,7 @@ Each story includes a user-story description, acceptance criteria with **what** 
   - `pre-commit install` succeeds and `.pre-commit-config.yaml` lives at repo root. — *Why:* Project-level hook config means new clones get the same checks without per-machine setup.
   - Hooks are scoped: touching `.py` runs Python tooling, touching `.ts/.tsx` runs JS tooling. — *Why:* Scoped hooks keep commit times short by only running checks relevant to the changed files.
   - The same versions of every linter run in CI. — *Why:* Drift between local and CI lints means "passes locally, fails in CI" loops; pinning versions removes that friction class.
-  - mypy runs in strict mode on `packages/core` and `services/api`. — *Why:* Strict mode catches the high-value bugs (Any-leakage, missing None checks) early when the codebase is small enough to stay clean.
+  - mypy runs in strict mode on `foresight.core` and `foresight.api`. — *Why:* Strict mode catches the high-value bugs (Any-leakage, missing None checks) early when the codebase is small enough to stay clean.
 - **Depends on:** E1.S1
 
 **E1.S5 — CI skeleton (GitHub Actions)**
@@ -198,12 +198,12 @@ Each story includes a user-story description, acceptance criteria with **what** 
 ### E3 — API Foundation (FastAPI)
 
 **E3.S1 — Bootstrap FastAPI app**
-- **User story:** As a developer, I want `services/api/` exposing `/health`, `/version`, `/docs`, with a versioned `/api/v1` router.
+- **User story:** As a developer, I want `foresight/api/` exposing `/health`, `/version`, `/docs`, with a versioned `/api/v1` router.
 - **Acceptance criteria:**
   - `GET /health` returns `{status: "ok", db: "ok"}` after a DB ping; `GET /version` returns commit SHA + build time. — *Why:* Health that doesn't check dependencies is decoration; including DB and exposing build info turns 3am incident response from a guessing game into a lookup.
   - OpenAPI docs render at `/docs` (Swagger) and `/redoc`. — *Why:* Auto-generated docs are the API's contract; if they don't render, the contract isn't real.
   - All business routes live under `/api/v1`. — *Why:* Versioning the path lets us ship breaking changes alongside the old API without a flag day.
-  - `pytest services/api/tests` runs in <5s on the empty stack. — *Why:* Fast tests stay run-frequently; slow tests get skipped under deadline pressure.
+  - `pytest tests/api` runs in <5s on the empty stack. — *Why:* Fast tests stay run-frequently; slow tests get skipped under deadline pressure.
 - **Depends on:** E1.S2, E2.S1
 
 **E3.S2 — Auth (JWT + service key)**
@@ -218,7 +218,7 @@ Each story includes a user-story description, acceptance criteria with **what** 
 **E3.S3 — Schemas, error model, pagination convention**
 - **User story:** As a developer, I want Pydantic schemas separated from ORM models, a structured error envelope, and one pagination convention.
 - **Acceptance criteria:**
-  - Pydantic schemas live in `services/api/schemas/`; ORM models in `packages/core/models/`. — *Why:* Mixing concerns means a private DB column accidentally lands in an API response; physical separation makes leaks unlikely.
+  - Pydantic schemas live in `foresight/api/schemas/`; ORM models in `foresight/core/models/`. — *Why:* Mixing concerns means a private DB column accidentally lands in an API response; physical separation makes leaks unlikely.
   - Error envelope is `{code: str, message: str, details: dict | null}` with a stable `code` taxonomy. — *Why:* Stable codes mean clients can branch on error class without parsing English; English-only errors lock UX changes to backend deploys.
   - Pagination is cursor-based (`?cursor=...&limit=...`) with a documented max page size. — *Why:* Cursor pagination is stable under writes (offset pagination skips/duplicates rows on insert); choosing once now avoids per-endpoint divergence.
   - Convention captured in `docs/api/conventions.md` (or an ADR). — *Why:* Conventions that aren't written get re-litigated every PR; one canonical doc is the cheapest enforcement mechanism.
@@ -256,7 +256,7 @@ Each story includes a user-story description, acceptance criteria with **what** 
 ### E4 — Shopify Ingestion + Worker
 
 **E4.S1 — Worker scaffold + scheduler**
-- **User story:** As a developer, I want `services/worker/` with APScheduler (or arq) wired into Compose.
+- **User story:** As a developer, I want `foresight/worker/` with APScheduler (or arq) wired into Compose.
 - **Acceptance criteria:**
   - Worker boots in compose with a healthcheck endpoint; a no-op scheduled job logs every 30s. — *Why:* Visible heartbeat catches "worker silently died" — the most common worker bug — at a glance.
   - Job framework supports both scheduled and on-demand jobs through one API. — *Why:* One API means the API service can enqueue jobs the same way the scheduler does; two APIs forks the codebase and doubles the bug surface.
@@ -314,7 +314,7 @@ Each story includes a user-story description, acceptance criteria with **what** 
   - Edge cases handled: zero orders → 0.0; one-order-in-window → linear extrapolation noted in metadata. — *Why:* Zero/sparse SKUs are 30%+ of any catalog; treating them as errors crashes the forecast for the long tail.
   - Unit tests cover zero-velocity, steady, growing, declining, and holiday-spike shapes. — *Why:* These five shapes are the velocity surface area; missing any one means a class of customer is invisibly mis-forecast.
   - Performance: 10k SKUs × 90-day window in <2s on a single core. — *Why:* The forecast runs nightly per tenant; slow velocity means slow forecast means stale answers.
-  - Lives in `packages/core/forecasting/` — importable by API and worker. — *Why:* Co-locating with models means tests and prod use exactly the same code path.
+  - Lives in `foresight/core/forecasting/` — importable by API and worker. — *Why:* Co-locating with models means tests and prod use exactly the same code path.
 - **Depends on:** E2.S5
 
 **E5.S2 — Days-of-cover forecast**
