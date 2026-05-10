@@ -43,8 +43,8 @@ Tracks completion state per story. Updated as part of each story's documentation
 |---|---|---|---|---|
 | E1.S0 | Git & branch bootstrap | ✅ Done | [#1](https://github.com/logankud/foresight/pull/1), [#2](https://github.com/logankud/foresight/pull/2) | `476d119`, `a9828e9` |
 | E1.S1 | Initialize repo & dependency tooling | ✅ Done | [#3](https://github.com/logankud/foresight/pull/3) | `0c78cce` |
-| E1.S2 | Adopt monorepo layout | 🟡 In review | _(this PR)_ | — |
-| E1.S3 | Makefile / dev commands | ⚪ Pending | — | — |
+| E1.S2 | Adopt monorepo layout | ✅ Done | [#4](https://github.com/logankud/foresight/pull/4) | `f94235e` |
+| E1.S3 | Makefile / dev commands | 🟡 In review | _(this PR)_ | — |
 | E1.S4 | Pre-commit hooks | ⚪ Pending | — | — |
 | E1.S5 | CI skeleton (GitHub Actions) | ⚪ Pending | — | — |
 | E1.S6 | ADR system + first ADRs | ⚪ Pending | — | — |
