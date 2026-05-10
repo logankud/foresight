@@ -24,10 +24,38 @@ Data-first, AI native features:
 - (Future) "Ops Gym" - Reinforcement Learning environment generated from operational data for state-of-the-art forecasting
 
 
-## TO DO
+## Project Status
 
-- Define initial codebase repository structure and outline
-- Define the core data model, implement a data storage layer (local & AWS compatible)
-- Define API core API model using fastapi 
-- Define the infrastructure to run this locally and deploy to AWS
-- Define the user journeys / UX flows for this product
+Foresight is in **early foundations** (Epic 1 — *Foundations & Tooling*). The repository is a documentation-only skeleton today; executable code, infrastructure, and the MVP vertical slice land across the epics planned in [`PLAN.md`](./PLAN.md).
+
+| Epic | Theme | Status |
+|---|---|---|
+| E1 | Foundations & Tooling | 🟡 In progress |
+| E2 | Data Model & Storage | ⚪ Not started |
+| E3 | API Foundation (FastAPI) | ⚪ Not started |
+| E4 | Shopify Ingestion + Worker | ⚪ Not started |
+| E5 | Forecasting Pipeline | ⚪ Not started |
+| E6 | Agent Layer + Slack | ⚪ Not started |
+| E7 | Web App (Next.js) | ⚪ Not started |
+| E8 | Local Infrastructure | ⚪ Not started |
+| E9 | AWS Infrastructure | ⚪ Not started |
+| E10 | UX Journey Acceptance Docs | ⚪ Not started |
+
+See `PLAN.md` for the full developer-story breakdown with acceptance criteria.
+
+## Contributing
+
+Contributors should read [`CONTRIBUTING.md`](./CONTRIBUTING.md) before opening a PR. Quick reference:
+
+- `main` is the **default branch** and tracks releases.
+- `develop` is the **integration branch**; all feature PRs target it.
+- One feature branch per story (`feature/{story-id}-{slug}`), one squash commit per branch.
+- PRs go through the [PR template](./.github/PULL_REQUEST_TEMPLATE.md), require ≥80% test coverage on touched code (or a documented exemption), and must be approved before squash-merging.
+
+## Roadmap
+
+Detailed epics and developer stories are tracked in [`PLAN.md`](./PLAN.md). The MVP wedge is a thin vertical slice through three pillars:
+
+1. **Data** — Shopify ingestion (orders + inventory) into Postgres, raw exports to S3.
+2. **Forecast** — SKU-level days-of-cover / stockout prediction.
+3. **Agent** — One Slack-surfaced agent that answers ops questions against the data layer.
