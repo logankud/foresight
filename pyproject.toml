@@ -6,15 +6,18 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Proprietary - All Rights Reserved" }
 authors = [{ name = "Logan Kudlacik" }]
-# No runtime dependencies yet. FastAPI / SQLAlchemy / etc. land in E2/E3.
+# Runtime dependencies are intentionally empty for now. FastAPI / SQLAlchemy /
+# Alembic / pandas / etc. land with their respective epics (E2-E5). If image
+# bloat becomes a concern, we can split into optional-dependencies extras
+# (`foresight[api]`, `foresight[worker]`) without restructuring the package.
 dependencies = []
 
-# This top-level project is currently a "tooling/meta" project.
-# Actual Python packages will live under `packages/*` and `services/*`
-# starting with E1.S2 (monorepo layout).
-[tool.uv]
-# Tell uv this project owns the workspace root but produces no wheel itself.
-package = false
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["foresight"]
 
 # PEP 735 dependency groups. Resolved by `uv sync --group <name>`.
 [dependency-groups]
@@ -34,11 +37,18 @@ dev = [
     { include-group = "lint" },
 ]
 
+[tool.uv]
+# Always install the dev group by default so a bare `uv sync` produces a
+# working development environment. Override with `--no-default-groups` for
+# minimal envs (e.g., production containers).
+default-groups = ["dev"]
+
 # ----- Tool configuration -----
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+src = ["foresight", "tests"]
 
 [tool.ruff.lint]
 # Conservative starter set; expanded in E1.S4 alongside pre-commit.
@@ -52,18 +62,23 @@ target-version = ["py312"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-# Strict mode applies to packages in this monorepo only. E1.S2 will narrow
-# the `files` setting to `packages/core` and `services/api` once they exist.
+# Scope mypy to the production package; tests are excluded for now to keep
+# strict-mode noise down (re-enabled when tests grow beyond smoke checks).
+files = ["foresight"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-testpaths = ["tests"]
-addopts = "-ra"
 asyncio_mode = "auto"
+# `importlib` mode is the modern recommendation for monorepos and keeps the
+# door open for multiple `test_*.py` files across subpackage trees without
+# basename collisions.
+addopts = "-ra --import-mode=importlib --cov --cov-report=term-missing"
+testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["tests"]
+source = ["foresight"]
+omit = ["*/__pycache__/*"]
 
 [tool.coverage.report]
 fail_under = 80
