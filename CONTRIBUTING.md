@@ -78,20 +78,38 @@ Same as `develop`, plus:
 
 ## Local Development
 
-After cloning, run **`make install`** once. That's the only command you need to memorize — the rest are discoverable via `make help`.
+After cloning, run **`make install`** followed by **`make hooks`** once. The first sets up the venv + node modules; the second installs the pre-commit hooks that gate every commit.
 
 ### Common commands
 
 ```bash
 make help          # List every target with a one-line description
 make install       # Install Python (uv) and Node (pnpm) deps
+make hooks         # Install pre-commit hooks (run once after install)
 make test          # Run pytest with coverage (gate: ≥80%)
-make fmt           # Format Python code (ruff + black)
-make lint          # Lint + type-check Python (ruff + mypy)
+make fmt           # Format Python code (ruff format)
+make lint          # Lint + type-check + layering (ruff + mypy + import-linter)
+make pre-commit    # Run every pre-commit hook on every file
 make ci            # Meta: install + lint + test (mirrors what CI runs)
 make web-dev       # Run the Next.js dev server
 make clean         # Wipe caches, venvs, build artifacts
 ```
+
+### Pre-commit hooks
+
+`make hooks` installs `pre-commit` as a **uv tool** (placing it on `~/.local/bin`) and registers the git hook. The uv-tool install is intentional: uv's lazy project-venv management can prune the project venv between commands, which would otherwise leave the git hook unable to find `pre-commit`. As a uv tool, `pre-commit` lives in a stable location on PATH and isn't affected by `uv sync`.
+
+Hooks run automatically on `git commit`. They enforce:
+
+- Generic hygiene: end-of-file newline, trailing whitespace, no merge conflict markers, no committed secrets, no >500KB binaries.
+- Python: ruff (lint + auto-fix + format), mypy (strict mode on `foresight/`), import-linter (layering rules between subpackages).
+- TOML/YAML well-formedness.
+
+Hooks are mostly auto-fixers — when one modifies a file, re-stage and re-commit. `--no-verify` is forbidden by `CONTRIBUTING.md`; investigate failures, don't bypass them.
+
+### Layering rules (machine-enforced)
+
+The subpackage layering rules in `foresight/__init__.py` are enforced by `import-linter` via the `[tool.importlinter]` section of `pyproject.toml`. Adding a layering violation will fail `make lint`, the `lint-imports` pre-commit hook, **and** `tests/test_layering.py`.
 
 Some targets are stubs awaiting future stories (e.g., `make up`, `make migrate`). They print a pointer to the story that will implement them and exit 0 — so the command shape stays stable from day one.
 

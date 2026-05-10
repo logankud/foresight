@@ -27,9 +27,9 @@ def test_project_name_is_foresight() -> None:
 def test_python_floor_is_311_or_higher() -> None:
     requires = _load_pyproject()["project"]["requires-python"]
     accepted_floors = (">=3.11", ">=3.12", ">=3.13", "~=3.11", "~=3.12", "~=3.13")
-    assert any(
-        marker in requires for marker in accepted_floors
-    ), f"requires-python must declare Python >= 3.11 (got: {requires!r})"
+    assert any(marker in requires for marker in accepted_floors), (
+        f"requires-python must declare Python >= 3.11 (got: {requires!r})"
+    )
 
 
 def test_dependency_groups_present() -> None:
@@ -52,9 +52,7 @@ def test_dev_group_includes_test_and_lint() -> None:
 
 def test_license_declared_proprietary() -> None:
     license_field = _load_pyproject()["project"]["license"]
-    text = (
-        license_field.get("text", "") if isinstance(license_field, dict) else license_field
+    text = license_field.get("text", "") if isinstance(license_field, dict) else license_field
+    assert "Proprietary" in text or "All Rights Reserved" in text, (
+        "License field must reflect the chosen proprietary license."
     )
-    assert (
-        "Proprietary" in text or "All Rights Reserved" in text
-    ), "License field must reflect the chosen proprietary license."

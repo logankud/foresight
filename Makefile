@@ -68,14 +68,25 @@ test:  ## Run pytest with coverage
 	uv run pytest
 
 .PHONY: fmt
-fmt:  ## Format Python code (ruff + black)
+fmt:  ## Format Python code (ruff format)
 	uv run ruff format foresight tests
-	uv run black foresight tests
 
 .PHONY: lint
-lint:  ## Lint and type-check Python (ruff + mypy)
+lint:  ## Lint, type-check, and verify layering (ruff + mypy + import-linter)
 	uv run ruff check foresight tests
 	uv run mypy
+	uv run lint-imports
+
+.PHONY: hooks
+hooks:  ## Install pre-commit on PATH and register git hooks
+	# Install pre-commit as a uv tool so it stays on PATH even when the
+	# project venv is re-synced. Idempotent. See CONTRIBUTING.md.
+	uv tool install pre-commit
+	uv tool run pre-commit install
+
+.PHONY: pre-commit
+pre-commit:  ## Run all pre-commit hooks against every file in the repo
+	uv run pre-commit run --all-files
 
 .PHONY: ci
 ci: install lint test  ## CI meta-target: install + lint + test (mirrors what CI will run in E1.S5)

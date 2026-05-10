@@ -1,0 +1,70 @@
+# Foresight pre-commit configuration.
+#
+# Hook strategy:
+# - Tools that don't need project deps run as upstream hooks (faster).
+# - Tools that DO need project deps (mypy, import-linter) run as local
+#   hooks via `uv run` so versions stay locked to `pyproject.toml`/`uv.lock`.
+# - Tool versions in upstream hooks should track the same major.minor as
+#   the `lint` dependency group in `pyproject.toml`. Dependabot bumps both.
+#
+# Install: `make hooks` (or `uv run pre-commit install`).
+# Run on all files: `make pre-commit`.
+
+default_install_hook_types: [pre-commit]
+default_language_version:
+  python: python3.12
+
+repos:
+  # ----- Generic file hygiene -----
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: detect-private-key
+
+  # ----- Python: ruff (format + lint) -----
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        files: ^(foresight|tests)/
+      - id: ruff-format
+        files: ^(foresight|tests)/
+
+  # ----- Markdown / YAML / JSON formatting -----
+  # Prettier deferred to E7 (Next.js web app). pre-commit's nodeenv tries
+  # to provision Node from the host's PATH and the prettier hook can fail
+  # noisily on machines with broken Node installs. When TypeScript code
+  # arrives, prettier will be installed locally via `pnpm add -D prettier`
+  # in `web/` and run as a local hook through `pnpm exec prettier`.
+
+  # ----- Local hooks (run inside the project venv) -----
+  # mypy needs the project's source + deps installed to type-check correctly,
+  # and `lint-imports` (import-linter) needs the full import graph.
+  # `uv run` invokes the locked venv so versions match CI exactly.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy (strict, foresight only)
+        entry: uv run mypy
+        language: system
+        pass_filenames: false
+        types_or: [python, pyi]
+        files: ^foresight/
+        require_serial: true
+
+      - id: lint-imports
+        name: lint-imports (layering rules)
+        entry: uv run lint-imports
+        language: system
+        pass_filenames: false
+        types: [python]
+        files: ^foresight/
+        require_serial: true
