@@ -45,8 +45,8 @@ Tracks completion state per story. Updated as part of each story's documentation
 | E1.S1 | Initialize repo & dependency tooling | ✅ Done | [#3](https://github.com/logankud/foresight/pull/3) | `0c78cce` |
 | E1.S2 | Adopt monorepo layout | ✅ Done | [#4](https://github.com/logankud/foresight/pull/4) | `f94235e` |
 | E1.S3 | Makefile / dev commands | ✅ Done | [#5](https://github.com/logankud/foresight/pull/5) | `c50978e` |
-| E1.S4 | Pre-commit hooks | 🟡 In review | _(this PR)_ | — |
-| E1.S5 | CI skeleton (GitHub Actions) | ⚪ Pending | — | — |
+| E1.S4 | Pre-commit hooks | ✅ Done | [#6](https://github.com/logankud/foresight/pull/6) | `b76b039` |
+| E1.S5 | CI skeleton (GitHub Actions) | 🟡 In review | _(this PR)_ | — |
 | E1.S6 | ADR system + first ADRs | ⚪ Pending | — | — |
 
 > All later epics (E2–E10) are pending. Status rows for those stories will be added as each epic's planning phase begins.
