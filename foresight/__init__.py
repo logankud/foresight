@@ -9,8 +9,10 @@ This is the single top-level Python package for the project. Subpackages:
 
 Layering rules:
 
-- ``foresight.core`` may not import from ``foresight.api``, ``foresight.worker``, or ``foresight.agents``.
-- ``foresight.api`` and ``foresight.worker`` must not import from each other; cross-service communication goes over HTTP.
+- ``foresight.core`` may not import from ``foresight.api``, ``foresight.worker``,
+  or ``foresight.agents``.
+- ``foresight.api`` and ``foresight.worker`` must not import from each other;
+  cross-service communication goes over HTTP.
 - ``foresight.agents`` may import from ``foresight.core`` only.
 
 These rules are documented in CONTRIBUTING.md and will be machine-enforced when

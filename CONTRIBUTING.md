@@ -78,7 +78,31 @@ Same as `develop`, plus:
 
 ## Local Development
 
-Full local setup lands with story **E1.S1** (`pyproject.toml`, `pnpm`/`uv` setup) and **E1.S3** (Makefile). Until then, the repo is documentation-only.
+After cloning, run **`make install`** once. That's the only command you need to memorize — the rest are discoverable via `make help`.
+
+### Common commands
+
+```bash
+make help          # List every target with a one-line description
+make install       # Install Python (uv) and Node (pnpm) deps
+make test          # Run pytest with coverage (gate: ≥80%)
+make fmt           # Format Python code (ruff + black)
+make lint          # Lint + type-check Python (ruff + mypy)
+make ci            # Meta: install + lint + test (mirrors what CI runs)
+make web-dev       # Run the Next.js dev server
+make clean         # Wipe caches, venvs, build artifacts
+```
+
+Some targets are stubs awaiting future stories (e.g., `make up`, `make migrate`). They print a pointer to the story that will implement them and exit 0 — so the command shape stays stable from day one.
+
+### Prerequisites
+
+| Tool | Min version | Install |
+|---|---|---|
+| `uv` | 0.5+ | `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| `pnpm` | 11+ | `brew install pnpm` |
+| Node | 22 LTS | `brew install node@22` (keg-only is fine; the Makefile picks it up automatically) |
+| Python | 3.12+ | uv will install it for you via `.python-version` |
 
 ## Reporting Issues
 
