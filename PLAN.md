@@ -46,8 +46,8 @@ Tracks completion state per story. Updated as part of each story's documentation
 | E1.S2 | Adopt monorepo layout | ✅ Done | [#4](https://github.com/logankud/foresight/pull/4) | `f94235e` |
 | E1.S3 | Makefile / dev commands | ✅ Done | [#5](https://github.com/logankud/foresight/pull/5) | `c50978e` |
 | E1.S4 | Pre-commit hooks | ✅ Done | [#6](https://github.com/logankud/foresight/pull/6) | `b76b039` |
-| E1.S5 | CI skeleton (GitHub Actions) | 🟡 In review | _(this PR)_ | — |
-| E1.S6 | ADR system + first ADRs | ⚪ Pending | — | — |
+| E1.S5 | CI skeleton (GitHub Actions) | ✅ Done | [#7](https://github.com/logankud/foresight/pull/7) | `41222b6` |
+| E1.S6 | Decision-rationale capture (ADRs deferred) | 🟡 In review | _(this PR)_ | — |
 
 > All later epics (E2–E10) are pending. Status rows for those stories will be added as each epic's planning phase begins.
 
@@ -134,13 +134,22 @@ Each story includes a user-story description, acceptance criteria with **what** 
   - Test artifacts (junit/sarif) uploaded on failure. — *Why:* Artifacts make root-causing CI failures possible without re-running locally; SARIF surfaces in the PR UI for fast triage.
 - **Depends on:** E1.S2, E1.S4
 
-**E1.S6 — ADR system + first ADRs**
-- **User story:** As a developer, I want `docs/adr/` with a template plus ADRs `0001-monorepo`, `0002-data-model`, `0003-aws-deployment`, so architectural decisions are durable.
-- **Acceptance criteria:**
-  - `docs/adr/_template.md` exists with sections: Context, Decision, Consequences, Alternatives Considered. — *Why:* A consistent template makes ADRs scannable and forces the writer to consider alternatives, not just rationalize a choice.
-  - ADRs 0001, 0002, 0003 capture decisions already made. — *Why:* Writing them now while the rationale is fresh prevents "why did we pick this?" archaeology in 6 months.
-  - Each ADR has a Status field (`Proposed | Accepted | Deprecated | Superseded by E#`). — *Why:* Status lets readers tell which ADRs are load-bearing vs. historical without reading every word.
-  - `CONTRIBUTING.md` references the template and the rule: "If the answer to a design question would surprise a future contributor, write an ADR." — *Why:* Codifying when to write an ADR prevents both undocumentation (bad calls forgotten) and overdocumentation (every PR gets an ADR).
+**E1.S6 — Decision-rationale capture (ADR system deferred)**
+- **User story:** As a developer, I want every load-bearing architectural decision made during E1 to be discoverable later, so future contributors don't have to reverse-engineer rationale from git history.
+- **Decision (revised in review):** The originally-planned ADR system was reviewed and **deferred indefinitely**. By the time E1.S6 came up, decision rationale was already captured in 5+ places:
+  - `PLAN.md` Architectural Decisions table — Python tooling, DB, infra targets, etc.
+  - `PLAN.md` "Why:" lines on every acceptance criterion in every story.
+  - `CONTRIBUTING.md` — workflow, prerequisites, layering rules, CI overview.
+  - `foresight/__init__.py` — layering rules captured as the module docstring.
+  - Commit messages (markdown body with Summary / Changes / Why per `CLAUDE.md`).
+  - PR descriptions (every PR template forces a "Why" justification).
+  Adding a 7th surface (per-decision ADR files) would mostly duplicate existing content while creating drift risk. ADRs earn their keep on multi-team / long-lived / open-source projects; for a solo MVP they're ceremony cost without proportional benefit.
+- **Re-introduction trigger:** Re-evaluate when **any** of these become true: (a) second contributor joins, (b) the project hits a 12-month mark, (c) PLAN.md grows past ~3000 lines making decision discovery painful.
+- **Acceptance criteria (revised):**
+  - PLAN.md Architectural Decisions table is current and reflects every decision made in E1.
+  - CONTRIBUTING.md captures the git workflow, layering rules, prerequisites, and CI overview.
+  - `foresight/__init__.py` docstring documents the layering rules.
+  - This deferral itself is recorded — readable from `PLAN.md` (here) and from the merge commit.
 - **Depends on:** E1.S2
 
 ---
