@@ -15,8 +15,9 @@ Layering rules:
   cross-service communication goes over HTTP.
 - ``foresight.agents`` may import from ``foresight.core`` only.
 
-These rules are documented in CONTRIBUTING.md and will be machine-enforced when
-``import-linter`` lands in E1.S4 (pre-commit).
+These rules are documented in CONTRIBUTING.md and machine-enforced via
+``import-linter`` (see ``[tool.importlinter]`` in pyproject.toml). They run
+in pre-commit, in ``make lint``, and in CI.
 """
 
 from __future__ import annotations
