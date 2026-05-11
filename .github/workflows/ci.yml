@@ -1,0 +1,115 @@
+# Foresight — primary CI workflow.
+#
+# Runs on every PR (any base branch) and every push to `develop` and `main`.
+# Three jobs run in parallel:
+#
+#   - `quality`     — `pre-commit run --all-files` (covers ruff, mypy,
+#                     import-linter, and file-hygiene hooks). Same config
+#                     contributors use locally; CI / local parity is enforced
+#                     by reusing `.pre-commit-config.yaml`.
+#   - `tests`       — `pytest` with coverage; the 80% gate is enforced via
+#                     `coverage.fail_under` in `pyproject.toml`.
+#   - `web-install` — `pnpm install --frozen-lockfile` so the Node lockfile
+#                     keeps resolving on a fresh runner. Lint / build / type
+#                     checks land with the first TypeScript code in E7.
+#
+# All `uses:` references are pinned to release tags; Dependabot's
+# `github-actions` ecosystem bumps them weekly.
+
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+
+# A new push to the same branch / PR cancels any in-progress run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: quality (pre-commit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv (auto-detects .python-version)
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Cache pre-commit envs
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-${{ runner.os }}-
+
+      - name: Run pre-commit (all files)
+        run: uv run pre-commit run --all-files --show-diff-on-failure
+
+  tests:
+    name: tests (pytest + coverage)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run pytest with coverage
+        run: uv run pytest --junit-xml=pytest-report.xml
+
+      - name: Upload pytest junit report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report
+          path: pytest-report.xml
+          retention-days: 14
+
+  web-install:
+    name: web (pnpm install)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Set up Node (from .node-version)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install (frozen lockfile)
+        # Verifies the committed lockfile resolves cleanly on a fresh runner.
+        # Once TypeScript code lands in E7.S1, additional steps (lint /
+        # type-check / build) will follow this install step.
+        run: pnpm install --frozen-lockfile

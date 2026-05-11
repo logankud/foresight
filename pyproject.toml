@@ -25,6 +25,10 @@ test = [
     "pytest>=8",
     "pytest-cov>=5",
     "pytest-asyncio>=0.23",
+    # `tests/test_ci.py` parses .github/workflows/ci.yml. PyYAML is a
+    # transitive dep of pre-commit too, but declaring it explicitly here
+    # documents the test's actual dependency.
+    "pyyaml>=6",
 ]
 lint = [
     "ruff>=0.6",

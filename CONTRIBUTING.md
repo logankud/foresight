@@ -111,6 +111,20 @@ Hooks are mostly auto-fixers — when one modifies a file, re-stage and re-commi
 
 The subpackage layering rules in `foresight/__init__.py` are enforced by `import-linter` via the `[tool.importlinter]` section of `pyproject.toml`. Adding a layering violation will fail `make lint`, the `lint-imports` pre-commit hook, **and** `tests/test_layering.py`.
 
+## Continuous Integration
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every PR and every push to `develop` / `main`. Three jobs run in parallel:
+
+| Job | What it runs | Equivalent local command |
+|---|---|---|
+| `quality` | `pre-commit run --all-files` — ruff, mypy, import-linter, file hygiene | `make pre-commit` |
+| `tests` | `pytest` with coverage (80% gate) | `make test` |
+| `web-install` | `pnpm install --frozen-lockfile` for `web/` | `cd web && pnpm install --frozen-lockfile` |
+
+The `quality` job intentionally reuses `.pre-commit-config.yaml` rather than re-listing tools — local hooks and CI run the **same** versions, with no drift. The 80% coverage gate is enforced inside `pyproject.toml` (`coverage.fail_under`), so it works identically in CI and locally.
+
+If CI fails, run `make pre-commit` or `make test` locally to reproduce. CI uploads the pytest junit XML as an artifact on failure (retention 14 days).
+
 Some targets are stubs awaiting future stories (e.g., `make up`, `make migrate`). They print a pointer to the story that will implement them and exit 0 — so the command shape stays stable from day one.
 
 ### Prerequisites

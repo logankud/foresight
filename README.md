@@ -30,7 +30,7 @@ Foresight is in **early foundations** (Epic 1 — *Foundations & Tooling*). The 
 
 | Epic | Theme | Status |
 |---|---|---|
-| E1 | Foundations & Tooling | 🟡 In progress (S0/S1/S2/S3 done, S4 in review, S5–S6 pending) |
+| E1 | Foundations & Tooling | 🟡 In progress (S0–S4 done, S5 in review, S6 pending) |
 | E2 | Data Model & Storage | ⚪ Not started |
 | E3 | API Foundation (FastAPI) | ⚪ Not started |
 | E4 | Shopify Ingestion + Worker | ⚪ Not started |
