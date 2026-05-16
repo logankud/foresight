@@ -62,6 +62,27 @@ jobs:
   tests:
     name: tests (pytest + coverage)
     runs-on: ubuntu-latest
+
+    # Postgres is required by the E2.S1+ DB-backed model tests. Uses
+    # the same image pinned in `infra/compose/docker-compose.yml`.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: foresight
+          POSTGRES_PASSWORD: foresight-dev
+          POSTGRES_DB: foresight
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U foresight -d foresight"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg://foresight:foresight-dev@localhost:5432/foresight
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -6,11 +6,17 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Proprietary - All Rights Reserved" }
 authors = [{ name = "Logan Kudlacik" }]
-# Runtime dependencies are intentionally empty for now. FastAPI / SQLAlchemy /
-# Alembic / pandas / etc. land with their respective epics (E2-E5). If image
-# bloat becomes a concern, we can split into optional-dependencies extras
+# Runtime dependencies land with each story that needs them. If image bloat
+# ever becomes a concern, split into optional-dependencies extras
 # (`foresight[api]`, `foresight[worker]`) without restructuring the package.
-dependencies = []
+dependencies = [
+    # E2.S1 — data model + storage primitives
+    "sqlalchemy>=2.0.36",
+    "psycopg[binary]>=3.2.3",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "uuid-utils>=0.10",  # UUIDv7 generation (PEP 442 / RFC 9562)
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -79,7 +85,15 @@ testpaths = ["tests"]
 [tool.coverage.run]
 branch = true
 source = ["foresight"]
-omit = ["*/__pycache__/*"]
+omit = [
+    "*/__pycache__/*",
+    # `db.py` and `settings.py` are minimal scaffolding for E2.S1; E2.S3
+    # provides the full storage abstraction and exercises both modules.
+    # Including them now would force premature tests for code that's
+    # about to be rewritten.
+    "foresight/core/db.py",
+    "foresight/core/settings.py",
+]
 
 [tool.coverage.report]
 fail_under = 80
