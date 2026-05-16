@@ -86,6 +86,9 @@ After cloning, run **`make install`** followed by **`make hooks`** once. The fir
 make help          # List every target with a one-line description
 make install       # Install Python (uv) and Node (pnpm) deps
 make hooks         # Install pre-commit hooks (run once after install)
+make up            # Boot the local Compose stack (Postgres today; full stack in E8)
+make down          # Tear down the Compose stack (data volume preserved)
+make db-shell      # Open a psql shell against the running Postgres
 make test          # Run pytest with coverage (gate: ≥80%)
 make fmt           # Format Python code (ruff format)
 make lint          # Lint + type-check + layering (ruff + mypy + import-linter)
@@ -135,6 +138,7 @@ Some targets are stubs awaiting future stories (e.g., `make up`, `make migrate`)
 | `pnpm` | 11+ | `brew install pnpm` |
 | Node | 22 LTS | `brew install node@22` (keg-only is fine; the Makefile picks it up automatically) |
 | Python | 3.12+ | uv will install it for you via `.python-version` |
+| Docker | 25+ | `brew install --cask docker` — required for the Postgres + future-stack containers (see `make up`) |
 
 ## Reporting Issues
 

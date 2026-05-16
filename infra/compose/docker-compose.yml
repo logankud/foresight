@@ -1,0 +1,33 @@
+# Foresight local development stack.
+#
+# Currently a single service: Postgres for the E2 data layer. Additional
+# services (api, worker, web, localstack) land with E8.S1.
+#
+# Bring up:  make up
+# Tear down: make down  (keeps data volume)
+# Full reset: docker compose -f infra/compose/docker-compose.yml down -v
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: foresight-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-foresight}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-foresight-dev}
+      POSTGRES_DB: ${POSTGRES_DB:-foresight}
+    ports:
+      # Bind to localhost only — never expose dev DB to the network.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - foresight_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-foresight} -d ${POSTGRES_DB:-foresight}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  foresight_db_data:
+    name: foresight_db_data
