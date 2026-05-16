@@ -47,7 +47,13 @@ Tracks completion state per story. Updated as part of each story's documentation
 | E1.S3 | Makefile / dev commands | ✅ Done | [#5](https://github.com/logankud/foresight/pull/5) | `c50978e` |
 | E1.S4 | Pre-commit hooks | ✅ Done | [#6](https://github.com/logankud/foresight/pull/6) | `b76b039` |
 | E1.S5 | CI skeleton (GitHub Actions) | ✅ Done | [#7](https://github.com/logankud/foresight/pull/7) | `41222b6` |
-| E1.S6 | Decision-rationale capture (ADRs deferred) | 🟡 In review | _(this PR)_ | — |
+| E1.S6 | Decision-rationale capture (ADRs deferred) | ✅ Done | [#8](https://github.com/logankud/foresight/pull/8) | `3f220cc` |
+| E2.S0 | Minimal Postgres in compose | 🟡 In review | _(this PR)_ | — |
+| E2.S1 | Define core entity models | ⚪ Pending | — | — |
+| E2.S2 | Raw event landing (S3 + RawEvent table) | ⚪ Pending | — | — |
+| E2.S3 | Storage abstractions (BlobStore + DB session) | ⚪ Pending | — | — |
+| E2.S4 | Alembic baseline migration | ⚪ Pending | — | — |
+| E2.S5 | Seed script | ⚪ Pending | — | — |
 
 > All later epics (E2–E10) are pending. Status rows for those stories will be added as each epic's planning phase begins.
 
@@ -155,6 +161,18 @@ Each story includes a user-story description, acceptance criteria with **what** 
 ---
 
 ### E2 — Data Model & Storage
+
+**E2.S0 — Minimal Postgres in compose (early sliver of E8.S1)**
+- **User story:** As a developer working on E2 stories, I want a Postgres instance reachable via `make up` so that entity-model tests and migrations have a real DB to run against without waiting for the full Compose stack in E8.
+- **Acceptance criteria:**
+  - `infra/compose/docker-compose.yml` exists with a single `db` service (Postgres 16, alpine variant) on host port `5432`. — *Why:* A real Postgres in dev catches the bugs SQLite hides (JSONB, RLS, native indexes). Alpine keeps the image small.
+  - Healthcheck via `pg_isready -U postgres` with sensible interval/timeout. — *Why:* Lets `make up` block until the DB is actually serving connections, so subsequent migrate/seed/test commands don't race against an unready DB.
+  - Persistent named volume (`foresight_db_data`) so DB state survives `compose down`. — *Why:* Devs hate re-seeding every restart; explicit `compose down -v` is the documented reset.
+  - `make up` promoted from stub to a working target invoking compose; `make down` promoted similarly. The stub message for compose targets is removed. — *Why:* `make up` always means "bring up the local stack as currently defined"; today that's just the DB, but E8.S1 extends without renaming.
+  - `make db-shell` target added — opens a `psql` prompt against the running DB. — *Why:* Every Postgres-using project needs a quick shell escape hatch; defining it once removes a class of "how do I connect locally?" questions.
+  - `.env.example` checked in with `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`. Real `.env` gitignored (already in `.gitignore` from E1). — *Why:* Documents the contract; missing env vars produce a clear failure mode rather than mystery connection errors.
+  - `CONTRIBUTING.md` "Prerequisites" updated to require Docker. — *Why:* Foresight is now a "Docker required" project; the README should match reality.
+- **Depends on:** E1.S3 (Makefile targets to promote)
 
 **E2.S1 — Define core entity models**
 - **User story:** As a developer, I want SQLAlchemy 2.x models for the core entities, so all downstream layers have a typed, queryable schema.

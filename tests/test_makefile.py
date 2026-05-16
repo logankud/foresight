@@ -36,15 +36,20 @@ WORKING_TARGETS = {
     "fmt",
     "lint",
     "ci",
+    "hooks",
+    "pre-commit",
     "web-dev",
     "web-build",
     "web-lint",
+    "up",
+    "down",
+    "db-shell",
     "clean",
 }
 
+# `up` and `down` were promoted from stubs to working targets in E2.S0.
+# Remaining stubs land with their respective stories.
 STUB_TARGETS = {
-    "up",
-    "down",
     "migrate",
     "seed",
 }

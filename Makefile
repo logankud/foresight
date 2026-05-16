@@ -109,16 +109,24 @@ web-lint:  ## Lint the web app (next lint + tsc)
 	cd web && $(PNPM) type-check
 
 # ====================================================================
-# Stack lifecycle (stubs — land in E8.S1)
+# Stack lifecycle
 # ====================================================================
+#
+# Single compose file is the source of truth for local services.
+# Currently just Postgres (E2.S0); E8.S1 extends to api/worker/web/localstack.
+COMPOSE := docker compose -f infra/compose/docker-compose.yml
 
 .PHONY: up
-up:  ## 🚧 Boot the local Docker Compose stack
-	$(call _stub,up,E8.S1)
+up:  ## Boot the local Compose stack (Postgres today; full stack in E8.S1)
+	$(COMPOSE) up -d --wait
 
 .PHONY: down
-down:  ## 🚧 Tear down the local Docker Compose stack
-	$(call _stub,down,E8.S1)
+down:  ## Tear down the local Compose stack (data volume preserved)
+	$(COMPOSE) down
+
+.PHONY: db-shell
+db-shell:  ## Open a psql shell against the running Postgres
+	$(COMPOSE) exec db psql -U $${POSTGRES_USER:-foresight} -d $${POSTGRES_DB:-foresight}
 
 # ====================================================================
 # Data / database (stubs — land in E2.S4 / E2.S5)

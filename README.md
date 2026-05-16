@@ -30,8 +30,8 @@ Foresight is in **early foundations** (Epic 1 — *Foundations & Tooling*). The 
 
 | Epic | Theme | Status |
 |---|---|---|
-| E1 | Foundations & Tooling | 🟡 In progress (S0–S5 done, S6 in review — ADRs deferred) |
-| E2 | Data Model & Storage | ⚪ Not started |
+| E1 | Foundations & Tooling | ✅ Done — see PRs #1–#8 |
+| E2 | Data Model & Storage | 🟡 In progress (S0 in review; S1–S5 pending) |
 | E3 | API Foundation (FastAPI) | ⚪ Not started |
 | E4 | Shopify Ingestion + Worker | ⚪ Not started |
 | E5 | Forecasting Pipeline | ⚪ Not started |
@@ -42,6 +42,21 @@ Foresight is in **early foundations** (Epic 1 — *Foundations & Tooling*). The 
 | E10 | UX Journey Acceptance Docs | ⚪ Not started |
 
 See `PLAN.md` for the full developer-story breakdown with acceptance criteria.
+
+## Local Development
+
+After cloning:
+
+```bash
+make install   # Install Python (uv) and Node (pnpm) deps
+make hooks     # Install pre-commit hooks
+make up        # Boot Postgres in Docker Compose
+make test      # Run the test suite (≥80% coverage gate)
+```
+
+`make help` lists every target. The local stack (`make up`) is currently just Postgres; the full stack (api, worker, web, localstack) lands with **E8** per [`PLAN.md`](./PLAN.md).
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the full workflow, branching model, and prerequisites table.
 
 ## Contributing
 
