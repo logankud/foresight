@@ -10,12 +10,13 @@ The goal of this planning pass is to lock in the foundational decisions and prod
 
 A **thin vertical slice across all three pillars**, end-to-end:
 
-- **Data:** Shopify orders + inventory ingested into Postgres, raw exports landed in S3.
-- **Forecast:** SKU-level stockout / days-of-cover (simplest first model; demand & revenue forecasts come after).
+- **Data:** OMS-sourced orders + finished-goods inventory ingested into Postgres via a **protocol-driven integration adapter** (ShipBob is the first adapter; Shopify + Amazon supported as storefront-level integrations for brands without an OMS). Raw exports land in S3.
+- **Inventory model:** finished goods + raw materials unified under `InventoryItem`; production tracked via `InventoryTransaction`; recipes via `BillOfMaterials`.
+- **Forecast:** physical-good (SKU-level) stockout / days-of-cover (simplest first model; demand & revenue forecasts come after).
 - **Agent:** One abstracted agent that can answer ops questions in Slack against the data layer.
 - **UX:** Minimal Next.js web app for setup/dashboards + Slack as the primary agent surface.
 - **Infra:** Docker Compose locally; AWS ECS Fargate as the deployment target.
-- **Out of scope for MVP:** wiki/KB, "Ops Gym" RL environment, additional data sources (Klaviyo, Amazon, CSV).
+- **Out of scope for MVP:** wiki/KB, "Ops Gym" RL environment, additional integrations beyond the ShipBob/Shopify/Amazon adapter trio.
 
 ## Architectural Decisions
 
@@ -32,8 +33,10 @@ A **thin vertical slice across all three pillars**, end-to-end:
 | Agent layer | Thin abstraction (`AgentClient` protocol) — concrete framework deferred until first agent ships |
 | Local infra | Docker Compose (api, db, worker, web, localstack/minio) |
 | Cloud infra | AWS ECS Fargate, RDS Postgres, S3, ALB; IaC via Terraform |
-| First data source | Shopify (orders + inventory) only |
-| First forecast | Days-of-cover / stockout per SKU |
+| First integration | ShipBob (OMS / 3PL); Shopify + Amazon as storefront-role adapters when needed |
+| Integration architecture | Protocol-driven adapter registry — vendors are plugin Python classes that self-register; no DB enum of supported kinds |
+| Inventory model | `InventoryItem` (finished goods + raw materials) + `InventoryTransaction` event log + `BillOfMaterials` recipes |
+| First forecast | Days-of-cover / stockout per `InventoryItem` (covers both finished goods and raw materials via BOM joins) |
 
 ## Story Status
 
@@ -48,12 +51,15 @@ Tracks completion state per story. Updated as part of each story's documentation
 | E1.S4 | Pre-commit hooks | ✅ Done | [#6](https://github.com/logankud/foresight/pull/6) | `b76b039` |
 | E1.S5 | CI skeleton (GitHub Actions) | ✅ Done | [#7](https://github.com/logankud/foresight/pull/7) | `41222b6` |
 | E1.S6 | Decision-rationale capture (ADRs deferred) | ✅ Done | [#8](https://github.com/logankud/foresight/pull/8) | `3f220cc` |
-| E2.S0 | Minimal Postgres in compose | 🟡 In review | _(this PR)_ | — |
-| E2.S1 | Define core entity models | ⚪ Pending | — | — |
-| E2.S2 | Raw event landing (S3 + RawEvent table) | ⚪ Pending | — | — |
+| E2.S0 | Minimal Postgres in compose | ✅ Done | [#9](https://github.com/logankud/foresight/pull/9) | `11c37e5` |
+| E2.S1 | Define core entity models (vendor-neutral after Option C rework) | 🟡 In review | _(this PR)_ | — |
+| E2.S6 | `InventoryItem` + `InventoryTransaction` (raw materials + finished goods unified) | ⚪ Pending | — | — |
+| E2.S7 | `BillOfMaterials` + `BomComponent` (recipes) | ⚪ Pending | — | — |
+| E2.S8 | `Integration` entity + protocol-driven adapter registry | ⚪ Pending | — | — |
 | E2.S3 | Storage abstractions (BlobStore + DB session) | ⚪ Pending | — | — |
-| E2.S4 | Alembic baseline migration | ⚪ Pending | — | — |
-| E2.S5 | Seed script | ⚪ Pending | — | — |
+| E2.S4 | Alembic baseline migration (all 14+ entities) | ⚪ Pending | — | — |
+| E2.S5 | Seed script (incl. raw materials + BOM + ShipBob Integration row) | ⚪ Pending | — | — |
+| E2.S2 | Raw event landing (S3 + RawEvent table) | ⚪ Pending | — | — |
 
 > All later epics (E2–E10) are pending. Status rows for those stories will be added as each epic's planning phase begins.
 
@@ -64,7 +70,7 @@ Tracks completion state per story. Updated as part of each story's documentation
 | E1 | Foundations & Tooling | Repo, monorepo layout, dev tooling, CI, ADR system |
 | E2 | Data Model & Storage | Entity model, raw landing, storage abstractions, migrations, seed |
 | E3 | API Foundation (FastAPI) | App bootstrap, auth, schemas, error model, MVP endpoints |
-| E4 | Shopify Ingestion + Worker | OAuth, backfill, webhooks, retry/ops endpoints |
+| E4 | Integration Framework + ShipBob Adapter | Adapter protocol + registry; ShipBob as the first concrete adapter (OAuth, backfill, webhooks, retry/ops endpoints). Storefront adapters (Shopify, Amazon) follow the same pattern. |
 | E5 | Forecasting Pipeline | Velocity, days-of-cover, artifacts, backtest |
 | E6 | Agent Layer + Slack | AgentClient protocol, tools, conversation persistence, Slack adapter, eval harness |
 | E7 | Web App (Next.js) | Auth, Setup, Inventory/Forecast, Agent Chat screens |
@@ -212,13 +218,45 @@ Each story includes a user-story description, acceptance criteria with **what** 
 - **Depends on:** E2.S1
 
 **E2.S5 — Seed script**
-- **User story:** As a developer, I want `make seed` to populate one tenant, ~50 SKUs, ~90 days of orders + inventory snapshots.
+- **User story:** As a developer, I want `make seed` to populate one tenant, ~50 SKUs, ~90 days of orders + inventory snapshots, plus a handful of raw materials with BOMs and a sample ShipBob `Integration` row.
 - **Acceptance criteria:**
-  - Produces 1 tenant, 1 brand, ~50 variants, ~90 days of orders + daily inventory snapshots. — *Why:* The whole point of seed is to unblock parallel work; covering the full data model means every downstream story can develop without Shopify access.
+  - Produces 1 tenant, 1 brand, ~50 variants linked to InventoryItems, ~90 days of orders + daily inventory snapshots, ~5 raw materials, and a BOM per finished good. — *Why:* The whole point of seed is to unblock parallel work; covering the full data model (incl. raw materials + BOM) means every downstream story can develop without live adapter access.
   - Deterministic given `SEED=42 make seed`. — *Why:* Determinism lets bugs be reproduced exactly; without it, "couldn't repro" becomes the dominant test outcome.
   - Order velocities vary across SKUs (some hot, some dead). — *Why:* A flat distribution makes the forecast trivially correct; realistic variation exposes the cases the model actually has to handle.
+  - One sample `Integration` row with `adapter_slug = "shipbob"` and `role = oms`; seeded inventory_snapshots reference it. — *Why:* Lets the adapter framework code paths run end-to-end against seed data.
   - Runtime under 10 seconds on a developer laptop. — *Why:* Slow seed = developers run it less = stale local data; sub-10s keeps `make seed` part of the everyday loop.
 - **Depends on:** E2.S4
+
+**E2.S6 — `InventoryItem` + `InventoryTransaction` (unified inventory abstraction)**
+- **User story:** As a developer, I want a single inventory abstraction covering both finished goods and raw materials, plus an immutable event log so real-time stock is queryable for either kind.
+- **High-level scope:**
+  - `InventoryItem` entity: brand-scoped, `kind ∈ {finished_good, raw_material}`, canonical `sku`, typed `UnitOfMeasure` enum (`g`, `lb`, `oz`, `pc`), `barcode`, supplier metadata.
+  - `InventoryTransaction` entity: immutable event log (receipt / consumption / production / sale / ShipBob events / adjustment) with signed `quantity` and optional `integration_id` provenance.
+  - Add `Variant.inventory_item_id` FK linking per-channel SKUs to their physical good.
+  - Refactor `ForecastPoint.variant_id` → `ForecastPoint.inventory_item_id` so forecasting works at the physical-good level (covers raw materials too).
+- **Depends on:** E2.S1
+- **Acceptance criteria:** written when the story is planned.
+
+**E2.S7 — `BillOfMaterials` + `BomComponent` (recipes linking finished goods to raw materials)**
+- **User story:** As an ops user, I want to define versioned recipes mapping a finished good to its raw material inputs (with quantities and units) so production planning can reason about raw material needs.
+- **High-level scope:**
+  - `BillOfMaterials` entity: versioned per finished-good `InventoryItem`; one active version at a time.
+  - `BomComponent` entity: one row per raw material in the BOM, with `quantity` + `UnitOfMeasure` (validated against the raw material item's UoM).
+  - Generalizes ShipBob's "Bundle" concept (kitting) to a full recipe model.
+- **Depends on:** E2.S6
+- **Acceptance criteria:** written when the story is planned.
+
+**E2.S8 — `Integration` entity + adapter protocol (protocol-driven, no vendor enum)**
+- **User story:** As a developer building the platform, I want a vendor-agnostic integration entity + adapter protocol so adding a new vendor (NetSuite, ShipStation, etc.) is a plugin Python module, not a schema migration + enum value.
+- **High-level scope:**
+  - `Integration` entity: `adapter_slug` (free-form string validated by the application against the registered adapter registry), `role` (typed enum: `oms` / `storefront` / `warehouse`), `config` (JSONB), `credentials_ref`, `is_active`, `last_synced_at`. **No DB enum** of supported kinds — adapters self-register at import time.
+  - Adapter protocol (`foresight.core.integrations.protocol`): `IntegrationAdapter` defines `slug`, `role`, `display_name`, `config_schema`, plus `fetch_products`, `fetch_orders`, `fetch_inventory_levels`. Concrete adapter implementations live in E4.
+  - Adapter registry with `register_adapter` decorator and `get_adapter(slug)` lookup. Future-extensible to Python entry points so third-party packages can ship adapters without modifying core.
+  - Retrofits vendor-sourced entities (Product, Variant, Order, InventorySnapshot, InventoryTransaction) with nullable `integration_id` FKs.
+- **Depends on:** E2.S6 (Integration may reference InventoryTransaction events)
+- **Acceptance criteria:** written when the story is planned.
+
+**Execution order:** `S0 (done) → S1 (in review) → S6 → S7 → S8 → S3 → S4 → S5 → S2`.
 
 ---
 

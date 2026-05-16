@@ -9,6 +9,45 @@ Owns the cross-cutting Python concerns consumed by every other subpackage:
 
 This subpackage MUST be import-side-effect free: module loading must not
 perform network calls, file system writes, or environment-dependent init.
+
+Re-exports the public model surface so callers can do
+``from foresight.core import Brand, Order``.
 """
 
 from __future__ import annotations
+
+from foresight.core.models import (
+    Base,
+    Brand,
+    Forecast,
+    ForecastPoint,
+    IngestionJob,
+    IngestionJobStatus,
+    InventorySnapshot,
+    Order,
+    OrderLineItem,
+    OrderStatus,
+    Product,
+    Tenant,
+    TenantScopedMixin,
+    TimestampMixin,
+    Variant,
+)
+
+__all__ = [
+    "Base",
+    "Brand",
+    "Forecast",
+    "ForecastPoint",
+    "IngestionJob",
+    "IngestionJobStatus",
+    "InventorySnapshot",
+    "Order",
+    "OrderLineItem",
+    "OrderStatus",
+    "Product",
+    "Tenant",
+    "TenantScopedMixin",
+    "TimestampMixin",
+    "Variant",
+]
