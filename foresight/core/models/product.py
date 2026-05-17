@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from foresight.core.models.brand import Brand
     from foresight.core.models.forecast import ForecastPoint
     from foresight.core.models.inventory import InventorySnapshot
+    from foresight.core.models.inventory_item import InventoryItem
     from foresight.core.models.order import OrderLineItem
 
 
@@ -74,6 +75,7 @@ class Variant(Base, TenantScopedMixin, TimestampMixin):
         UniqueConstraint("brand_id", "sku", name="uq_variants_brand_sku"),
         UniqueConstraint("external_ref", name="uq_variants_external_ref"),
         Index("ix_variants_product_id", "product_id"),
+        Index("ix_variants_inventory_item_id", "inventory_item_id"),
     )
 
     id: Mapped[UUID] = uuid_pk()
@@ -93,9 +95,20 @@ class Variant(Base, TenantScopedMixin, TimestampMixin):
     sku: Mapped[str] = mapped_column(String(120), nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     barcode: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # Link to the physical good this Variant lists. Nullable because the
+    # link may not exist until ingestion runs (or for purely manual
+    # catalog entries). When the InventoryItem is deleted, the link
+    # SET NULLs rather than deleting the Variant — historical orders
+    # may still reference it.
+    inventory_item_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("inventory_items.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     # Relationships
     product: Mapped[Product] = relationship(back_populates="variants")
+    inventory_item: Mapped[InventoryItem | None] = relationship(back_populates="variants")
     inventory_snapshots: Mapped[list[InventorySnapshot]] = relationship(
         back_populates="variant",
         cascade="all, delete-orphan",
