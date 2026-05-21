@@ -19,6 +19,15 @@ from foresight.core.models.brand import Brand
 from foresight.core.models.forecast import Forecast, ForecastPoint
 from foresight.core.models.ingestion import IngestionJob, IngestionJobStatus
 from foresight.core.models.inventory import InventorySnapshot
+from foresight.core.models.inventory_item import (
+    InventoryItem,
+    InventoryItemKind,
+    UnitOfMeasure,
+)
+from foresight.core.models.inventory_transaction import (
+    InventoryTransaction,
+    InventoryTransactionKind,
+)
 from foresight.core.models.order import Order, OrderLineItem, OrderStatus
 from foresight.core.models.product import Product, Variant
 from foresight.core.models.tenant import Tenant
@@ -30,7 +39,11 @@ __all__ = [
     "ForecastPoint",
     "IngestionJob",
     "IngestionJobStatus",
+    "InventoryItem",
+    "InventoryItemKind",
     "InventorySnapshot",
+    "InventoryTransaction",
+    "InventoryTransactionKind",
     "Order",
     "OrderLineItem",
     "OrderStatus",
@@ -38,5 +51,6 @@ __all__ = [
     "Tenant",
     "TenantScopedMixin",
     "TimestampMixin",
+    "UnitOfMeasure",
     "Variant",
 ]

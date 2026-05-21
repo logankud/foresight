@@ -12,11 +12,10 @@ A **thin vertical slice across all three pillars**, end-to-end:
 
 - **Data:** OMS-sourced orders + finished-goods inventory ingested into Postgres via a **protocol-driven integration adapter** (ShipBob is the first adapter; Shopify + Amazon supported as storefront-level integrations for brands without an OMS). Raw exports land in S3.
 - **Inventory model:** finished goods + raw materials unified under `InventoryItem`; production tracked via `InventoryTransaction`; recipes via `BillOfMaterials`.
-- **Forecast:** physical-good (SKU-level) stockout / days-of-cover (simplest first model; demand & revenue forecasts come after).
-- **Agent:** One abstracted agent that can answer ops questions in Slack against the data layer.
-- **UX:** Minimal Next.js web app for setup/dashboards + Slack as the primary agent surface.
+- **Inventory management platform:** team-usable web UI + REST API for managing items, recording transactions, defining BOMs, and configuring integrations. Vertical slices (API + UI shipped together per entity area). **This is the primary user-facing surface.**
+- **Agent:** One abstracted agent that can answer ops questions in Slack against the data layer (lands after the inventory mgmt UI is real).
 - **Infra:** Docker Compose locally; AWS ECS Fargate as the deployment target.
-- **Out of scope for MVP:** wiki/KB, "Ops Gym" RL environment, additional integrations beyond the ShipBob/Shopify/Amazon adapter trio.
+- **Out of scope for MVP:** **forecasting (E5) — deferred to post-MVP**; wiki/KB; "Ops Gym" RL environment; additional integrations beyond the ShipBob/Shopify/Amazon adapter trio.
 
 ## Architectural Decisions
 
@@ -52,14 +51,18 @@ Tracks completion state per story. Updated as part of each story's documentation
 | E1.S5 | CI skeleton (GitHub Actions) | ✅ Done | [#7](https://github.com/logankud/foresight/pull/7) | `41222b6` |
 | E1.S6 | Decision-rationale capture (ADRs deferred) | ✅ Done | [#8](https://github.com/logankud/foresight/pull/8) | `3f220cc` |
 | E2.S0 | Minimal Postgres in compose | ✅ Done | [#9](https://github.com/logankud/foresight/pull/9) | `11c37e5` |
-| E2.S1 | Define core entity models (vendor-neutral after Option C rework) | 🟡 In review | _(this PR)_ | — |
-| E2.S6 | `InventoryItem` + `InventoryTransaction` (raw materials + finished goods unified) | ⚪ Pending | — | — |
+| E2.S1 | Define core entity models (vendor-neutral) | ✅ Done | [#10](https://github.com/logankud/foresight/pull/10) | `b782ac0` |
+| E2.S6 | `InventoryItem` + `InventoryTransaction` (raw materials + finished goods unified) | 🟡 In review | _(this PR)_ | — |
 | E2.S7 | `BillOfMaterials` + `BomComponent` (recipes) | ⚪ Pending | — | — |
 | E2.S8 | `Integration` entity + protocol-driven adapter registry | ⚪ Pending | — | — |
 | E2.S3 | Storage abstractions (BlobStore + DB session) | ⚪ Pending | — | — |
 | E2.S4 | Alembic baseline migration (all 14+ entities) | ⚪ Pending | — | — |
 | E2.S5 | Seed script (incl. raw materials + BOM + ShipBob Integration row) | ⚪ Pending | — | — |
-| E2.S2 | Raw event landing (S3 + RawEvent table) | ⚪ Pending | — | — |
+| E2.S2 | Raw event landing (S3 + RawEvent table) — deferred until needed | ⚪ Pending | — | — |
+| EIM.VS1 | Vertical slice: Inventory Items (API + UI) | ⚪ Pending | — | — |
+| EIM.VS2 | Vertical slice: Inventory Transactions (API + UI) | ⚪ Pending | — | — |
+| EIM.VS3 | Vertical slice: BOMs + production runs (API + UI) | ⚪ Pending | — | — |
+| EIM.VS4 | Vertical slice: Integrations (API + UI) | ⚪ Pending | — | — |
 
 > All later epics (E2–E10) are pending. Status rows for those stories will be added as each epic's planning phase begins.
 
@@ -71,9 +74,10 @@ Tracks completion state per story. Updated as part of each story's documentation
 | E2 | Data Model & Storage | Entity model, raw landing, storage abstractions, migrations, seed |
 | E3 | API Foundation (FastAPI) | App bootstrap, auth, schemas, error model, MVP endpoints |
 | E4 | Integration Framework + ShipBob Adapter | Adapter protocol + registry; ShipBob as the first concrete adapter (OAuth, backfill, webhooks, retry/ops endpoints). Storefront adapters (Shopify, Amazon) follow the same pattern. |
-| E5 | Forecasting Pipeline | Velocity, days-of-cover, artifacts, backtest |
+| ~~E5~~ | ~~Forecasting Pipeline~~ | **DEFERRED — post-MVP.** Days-of-cover + backtest land after the inventory management platform is live and proven. |
 | E6 | Agent Layer + Slack | AgentClient protocol, tools, conversation persistence, Slack adapter, eval harness |
-| E7 | Web App (Next.js) | Auth, Setup, Inventory/Forecast, Agent Chat screens |
+| E7 | Web App (Next.js) — scaffold | Auth, Next.js scaffold, design-tokens / shadcn-ui setup. **No screens here** — feature screens live in EIM (vertical slices). |
+| **EIM** | **Inventory Management UX (vertical slices)** | **NEW primary user-facing epic.** One vertical slice per entity area = backend API + frontend screens shipped together. Pause after each slice for manual UI UAT. |
 | E8 | Local Infrastructure | Compose stack, Dockerfiles, env templates |
 | E9 | AWS Infrastructure | Terraform modules (network/data/services), CI image push, secrets, dev deploy |
 | E10 | UX Journey Acceptance Docs | Onboard, Daily Check-in, Reorder Triggered |
@@ -637,6 +641,42 @@ Each story includes a user-story description, acceptance criteria with **what** 
   - Ack writes a `ReorderAck` row visible to subsequent agent answers. — *Why:* Closing the loop (agent → alert → ack → agent) is what turns the agent from chatbot into operator; this row is the data plumbing.
   - Demoable in compose: trigger forecast → Slack alert in mock channel → ack → ack visible in agent answer. — *Why:* End-to-end demoability is the only honest acceptance for a journey; partial demos hide integration bugs.
 - **Depends on:** E5.S2, E6.S4
+
+---
+
+### EIM — Inventory Management UX (vertical slices)
+
+**Why this epic exists:** The MVP is no longer "data → forecast → agent demo." It's a real inventory management platform your team uses every day. Each vertical slice ships backend API + frontend screens for one entity area in a single PR; the team can adopt features as they land.
+
+**Pause between slices.** Each VS PR includes manual UAT instructions. After approval, we pause for live UI testing before starting the next slice.
+
+**EIM.VS1 — Vertical slice: Inventory Items (API + UI)**
+- **User story:** As an ops team member, I want to see every inventory item we track (finished goods + raw materials), filter by kind, and create/edit/delete items by hand so I can manage the catalog without engineering help.
+- **High-level scope:**
+  - Backend: `GET /api/v1/inventory-items` (list + filter by kind/brand), `GET /:id`, `POST`, `PATCH`, `DELETE`, `GET /:id/current-stock` (sums transactions).
+  - Frontend: Items list page (kind filter, search, sortable columns), Item detail page (metadata + current stock + transaction history excerpt), Add/edit form (kind, sku, name, UoM, supplier metadata).
+- **Depends on:** E2.S6, E3.S1, E3.S2, E7.S1
+
+**EIM.VS2 — Vertical slice: Inventory Transactions (API + UI)**
+- **User story:** As an ops team member, I want to record receipts, consumption, production, and adjustments by hand and see the full transaction history per item, so I can keep raw material counts accurate.
+- **High-level scope:**
+  - Backend: `GET /api/v1/inventory-items/:id/transactions` (paginated, filterable), `POST /api/v1/inventory-items/:id/transactions`.
+  - Frontend: Transaction history table (kind filter, date range), Record-transaction modal (kind picker with sane defaults, quantity input respecting item's UoM, reason field).
+- **Depends on:** EIM.VS1
+
+**EIM.VS3 — Vertical slice: BOMs + production runs (API + UI)**
+- **User story:** As an ops team member, I want to define recipes mapping finished goods to their raw material inputs, then trigger production runs that consume raw materials and produce finished goods in one click.
+- **High-level scope:**
+  - Backend: `GET /api/v1/boms`, `POST`, `PUT /:id` (creates new version), `POST /:id/produce` (transactional: writes N consumption rows + 1 production row).
+  - Frontend: BOM list, BOM editor (finished good + components with quantities + UoM validation), Production run dialog (select BOM, enter # of finished goods to produce, preview consumption, confirm).
+- **Depends on:** EIM.VS2, E2.S7
+
+**EIM.VS4 — Vertical slice: Integrations (API + UI)**
+- **User story:** As a brand admin, I want to connect ShipBob (and later Shopify/Amazon) through a self-serve UI, see sync status, and trigger manual re-syncs when needed.
+- **High-level scope:**
+  - Backend: `GET /api/v1/integrations`, `POST` (creates Integration row, validates against adapter registry), `PATCH /:id`, `POST /:id/sync` (enqueues an IngestionJob).
+  - Frontend: Integrations list (kind + role + sync status), Connect-new flow (adapter picker driven by the registry + config form generated from the adapter's `config_schema`), Sync status badge with last-synced timestamp + manual-resync button.
+- **Depends on:** EIM.VS3, E2.S8, E4 first concrete adapter (`ShipBobAdapter`)
 
 ---
 

@@ -19,6 +19,7 @@ from foresight.core.models.base import Base, TenantScopedMixin, TimestampMixin, 
 if TYPE_CHECKING:
     from foresight.core.models.forecast import Forecast
     from foresight.core.models.ingestion import IngestionJob
+    from foresight.core.models.inventory_item import InventoryItem
     from foresight.core.models.order import Order
     from foresight.core.models.product import Product
     from foresight.core.models.tenant import Tenant
@@ -52,6 +53,9 @@ class Brand(Base, TenantScopedMixin, TimestampMixin):
         back_populates="brand", cascade="all, delete-orphan", passive_deletes=True
     )
     ingestion_jobs: Mapped[list[IngestionJob]] = relationship(
+        back_populates="brand", cascade="all, delete-orphan", passive_deletes=True
+    )
+    inventory_items: Mapped[list[InventoryItem]] = relationship(
         back_populates="brand", cascade="all, delete-orphan", passive_deletes=True
     )
 
